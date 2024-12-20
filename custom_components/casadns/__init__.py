@@ -22,6 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_INTERVAL = timedelta(minutes=15)
 
+DOMAIN = "casadns"
 TIMEOUT = 30
 HOST = "casadns.eu"
 
