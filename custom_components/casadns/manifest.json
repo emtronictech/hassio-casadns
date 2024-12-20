@@ -1,9 +1,9 @@
 {
   "domain": "casadns",
   "name": "CasaDNS dynamic DNS service",
-  "documentation": "https://github.com/emtronictech/hassio-casadns/blob/master/README.md",
-  "issue_tracker": "https://github.com/emtronictech/hassio-casadns/issues",
   "codeowners": ["@emtronictech"],
+  "documentation": "https://github.com/emtronictech/hassio-casadns/blob/master/README.md",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/emtronictech/hassio-casadns/issues",
   "version": "1.0.0"
 }
