@@ -33,9 +33,9 @@ To use the integration in Home Assistant, you need to add the following configur
 casadns:
   - name: <USERNAME>.casadns.eu
     username: <USERNAME>
-    secret: <SECRET>
+    password: <PASSWORD>
 ```
 
 Save the changes made in the configuration.yaml file and restart Home Assistant. 
 
-_Change the variables USERNAME and SECRET in the above example! Your username is equal to your subdomain in _\<USERNAME\>_.casadns.eu._
+_Change the variables USERNAME and PASSWORD in the above example! Your username is equal to your subdomain in _\<USERNAME\>_.casadns.eu._
