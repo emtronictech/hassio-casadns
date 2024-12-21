@@ -4,7 +4,7 @@
 
 ![Static Badge](https://img.shields.io/badge/HACS-Custom-blue?style=flat)
 
-This custom integration in HACS allows you to link your IP address to your own CasaDNS subdomain. If your IP address changes, the DNS is automatically updated so that your sudomein always continues to point to your smart home.
+This custom integration in HACS allows you to link your IP address to your own CasaDNS subdomain. If your IP address changes, the DNS is automatically updated so that your subdomain always continues to point to your smart home.
 
 ---
 
@@ -27,14 +27,15 @@ This custom integration in HACS allows you to link your IP address to your own C
 
 ## Configuration
 
-To use the integration in Home Assistant, you need to add the following configuration to your **configuration.yaml** file:
+To use the integration in Home Assistant, you need to add the following configuration to your **configuration.yaml** file and change the required variables.
 
 ```
 casadns:
-  username: <USERNAME>
-  secret: <SECRET>
+  - name: <USERNAME>.casadns.eu
+    username: <USERNAME>
+    secret: <SECRET>
 ```
 
 Save the changes made in the configuration.yaml file and restart Home Assistant. 
 
-_Modify your USERNAME and SECRET in the above example. Your username is equal to your subdomain in _\<USERNAME\>_.casadns.eu._
+_Change the variables USERNAME and SECRET in the above example! Your username is equal to your subdomain in _\<USERNAME\>_.casadns.eu._

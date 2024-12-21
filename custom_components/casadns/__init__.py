@@ -53,31 +53,38 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Initialize CasaDNS component"""
-    conf = config[DOMAIN]
-    username = conf.get(CONF_USERNAME).strip()
-    secret = conf.get(CONF_SECRET).strip()
+    """conf = config[DOMAIN]"""
+    """username = conf.get(CONF_USERNAME).strip()"""
+    """secret = conf.get(CONF_SECRET).strip()"""
     update_interval = conf.get(CONF_UPDATE_INTERVAL)
 
     session = async_get_clientsession(hass, family=socket.AF_INET)
     location_info = await async_detect_location_info(session)
 
     if not location_info or not is_ipv4_address(location_info.ip):
-        _LOGGER.danger("Could not get external IPv4 address for updating DNS %s.%s", username, HOST)
+        _LOGGER.warning("Could not get external IPv4 address for updating DNS %s.%s", username, HOST)
         return False
 
-    result = await _update_dns(session, username, secret)
+    for casadns_idx, conf in enumerate(config[DOMAIN]):
+        config_name = conf.get(CONF_NAME).strip()
+        username = conf.get(CONF_USERNAME).strip()
+        secret = conf.get(CONF_SECRET).strip()
 
-    if not result:
-        return False
+        if config_name is None:
+            config_name = f"CasaDNS_entry_{casadns_idx}"
+            _LOGGER.debug("# Found no name for CasaDNS entry, generated a unique name: %s", config_name)
 
-    async def update_dns_interval(now):
-        """Update the DNS record"""
-        await _update_dns(session, username, secret)
+        _LOGGER.debug("%s # Setting up CasaDNS entry with config:\n %s", config_name, conf)
 
-    async_track_time_interval(hass, update_dns_interval, interval)
+        updateDnsResult = await _update_dns(session, username, secret)
 
-    return True
+        if not updateDnsResult:
+            continue
 
+        async def update_dns_interval(now):
+            await _update_dns(session, username, secret)
+
+        async_track_time_interval(hass, update_dns_interval, interval)
 
 async def _update_dns(session, username, secret):
     try:
