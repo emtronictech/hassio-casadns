@@ -8,6 +8,7 @@ import socket
 import voluptuous as vol
 
 from homeassistant.const import (
+    CONF_NAME,
     CONF_USERNAME,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL
@@ -35,10 +36,28 @@ CASADNS_RESPONSE_ERRORS = {
     "Abuse": "Username is blocked due to abuse",
 }
 
+INTEGRATION_SCHEMA = {
+    vol.Optional(CONF_NAME): cv.string,
+    vol.Required(CONF_USERNAME): cv.string,
+    vol.Required(CONF_PASSWORD): cv.string,
+    vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_INTERVAL): vol.All(
+        cv.time_period, cv.positive_timedelta
+    ),
+}
+
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.All(cv.ensure_list, [INTEGRATION_SCHEMA])
+    },
+    extra=vol.ALLOW_EXTRA,
+)
+
+"""
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
+                vol.Optional(CONF_NAME): cv.string,
                 vol.Required(CONF_USERNAME): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
                 vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_INTERVAL): vol.All(
@@ -49,7 +68,7 @@ CONFIG_SCHEMA = vol.Schema(
     },
     extra=vol.ALLOW_EXTRA,
 )
-
+"""
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Initialize CasaDNS component"""
