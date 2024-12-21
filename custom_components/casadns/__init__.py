@@ -2,9 +2,9 @@
 import asyncio
 from datetime import timedelta
 import logging
-
 import aiohttp
 import async_timeout
+import socket
 import voluptuous as vol
 
 from homeassistant.const import (
@@ -17,6 +17,8 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util.location import async_detect_location_info
+from homeassistant.util.network import is_ipv4_address
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,7 +58,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     secret = conf.get(CONF_SECRET).strip()
     update_interval = conf.get(CONF_UPDATE_INTERVAL)
 
-    session = async_get_clientsession(hass)
+    session = async_get_clientsession(hass, family=socket.AF_INET))
+    location_info = await async_detect_location_info(session)
+
+    if not location_info or not is_ipv4_address(location_info.ip):
+        _LOGGER.danger("Could not get external IPv4 address for updating DNS %s.%s", username, HOST)
+        return False
 
     result = await _update_dns(session, username, secret)
 
