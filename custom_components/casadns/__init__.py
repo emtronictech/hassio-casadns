@@ -9,8 +9,8 @@ import voluptuous as vol
 
 from homeassistant.const import (
     CONF_USERNAME,
-    CONF_SECRET,
-    CONF_UPDATE_INTERVAL
+    CONF_PASSWORD,
+    CONF_SCAN_INTERVAL
 )
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
@@ -30,7 +30,7 @@ HOST = "casadns.eu"
 
 CASADNS_RESPONSE_ERRORS = {
     "Forbidden": "Invalid username password combination",
-    "Unauthorized": "Invalid combination of username and secret",
+    "Unauthorized": "Invalid combination of username and password",
     "Blocked": "Browser user agent not allowed or IP address blocked",
     "Abuse": "Username is blocked due to abuse",
 }
@@ -40,8 +40,8 @@ CONFIG_SCHEMA = vol.Schema(
         DOMAIN: vol.Schema(
             {
                 vol.Required(CONF_USERNAME): cv.string,
-                vol.Required(CONF_SECRET): cv.string,
-                vol.Optional(CONF_UPDATE_INTERVAL, default=DEFAULT_INTERVAL): vol.All(
+                vol.Required(CONF_PASSWORD): cv.string,
+                vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_INTERVAL): vol.All(
                     cv.time_period, cv.positive_timedelta
                 ),
             }
@@ -53,11 +53,6 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Initialize CasaDNS component"""
-    """conf = config[DOMAIN]"""
-    """username = conf.get(CONF_USERNAME).strip()"""
-    """secret = conf.get(CONF_SECRET).strip()"""
-    update_interval = conf.get(CONF_UPDATE_INTERVAL)
-
     session = async_get_clientsession(hass, family=socket.AF_INET)
     location_info = await async_detect_location_info(session)
 
@@ -68,7 +63,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     for casadns_idx, conf in enumerate(config[DOMAIN]):
         config_name = conf.get(CONF_NAME).strip()
         username = conf.get(CONF_USERNAME).strip()
-        secret = conf.get(CONF_SECRET).strip()
+        password = conf.get(CONF_PASSWORD).strip()
+        interval = conf.get(CONF_SCAN_INTERVAL)
 
         if config_name is None:
             config_name = f"CasaDNS_entry_{casadns_idx}"
@@ -76,19 +72,19 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
         _LOGGER.debug("%s # Setting up CasaDNS entry with config:\n %s", config_name, conf)
 
-        updateDnsResult = await _update_dns(session, username, secret)
+        updateDnsResult = await _update_dns(session, username, password)
 
         if not updateDnsResult:
             continue
 
         async def update_dns_interval(now):
-            await _update_dns(session, username, secret)
+            await _update_dns(session, username, password)
 
         async_track_time_interval(hass, update_dns_interval, interval)
 
-async def _update_dns(session, username, secret):
+async def _update_dns(session, username, password):
     try:
-        url = f"https://casadns.eu/dns/?username={username}&secret={secret}"
+        url = f"https://casadns.eu/dns/?username={username}&password={password}"
         async with async_timeout.timeout(TIMEOUT):
             resp = await session.get(url)
             body = await resp.text()
