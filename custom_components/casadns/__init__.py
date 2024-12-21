@@ -100,6 +100,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             await _update_dns(session, username, password)
 
         async_track_time_interval(hass, update_dns_interval, interval)
+        
+    return True        
 
 async def _update_dns(session, username, password):
     try:
