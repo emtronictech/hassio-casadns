@@ -58,7 +58,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     secret = conf.get(CONF_SECRET).strip()
     update_interval = conf.get(CONF_UPDATE_INTERVAL)
 
-    session = async_get_clientsession(hass, family=socket.AF_INET))
+    session = async_get_clientsession(hass, family=socket.AF_INET)
     location_info = await async_detect_location_info(session)
 
     if not location_info or not is_ipv4_address(location_info.ip):
