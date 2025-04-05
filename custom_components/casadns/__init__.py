@@ -9,8 +9,8 @@ import voluptuous as vol
 
 from homeassistant.const import (
     CONF_NAME,
-    CONF_USERNAME,
-    CONF_PASSWORD,
+    CONF_DOMAIN,
+    CONF_TOKEN,
     CONF_SCAN_INTERVAL
 )
 from homeassistant.core import HomeAssistant
@@ -38,8 +38,8 @@ CASADNS_RESPONSE_ERRORS = {
 
 INTEGRATION_SCHEMA = {
     vol.Optional(CONF_NAME): cv.string,
-    vol.Required(CONF_USERNAME): cv.string,
-    vol.Required(CONF_PASSWORD): cv.string,
+    vol.Required(CONF_DOMAIN): cv.string,
+    vol.Required(CONF_TOKEN): cv.string,
     vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_INTERVAL): vol.All(
         cv.time_period, cv.positive_timedelta
     ),
@@ -58,8 +58,8 @@ CONFIG_SCHEMA = vol.Schema(
         DOMAIN: vol.Schema(
             {
                 vol.Optional(CONF_NAME): cv.string,
-                vol.Required(CONF_USERNAME): cv.string,
-                vol.Required(CONF_PASSWORD): cv.string,
+                vol.Required(CONF_DOMAIN): cv.string,
+                vol.Required(CONF_TOKEN): cv.string,
                 vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_INTERVAL): vol.All(
                     cv.time_period, cv.positive_timedelta
                 ),
@@ -81,8 +81,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     for casadns_idx, conf in enumerate(config[DOMAIN]):
         config_name = conf.get(CONF_NAME).strip()
-        username = conf.get(CONF_USERNAME).strip()
-        password = conf.get(CONF_PASSWORD).strip()
+        casadns_domain = conf.get(CONF_DOMAIN).strip()
+        casadns_token = conf.get(CONF_TOKEN).strip()
         interval = conf.get(CONF_SCAN_INTERVAL)
 
         if config_name is None:
@@ -91,21 +91,21 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
         _LOGGER.debug("%s # Setting up CasaDNS entry with config:\n %s", config_name, conf)
 
-        updateDnsResult = await _update_dns(session, username, password)
+        updateDnsResult = await _update_dns(session, casadns_domain, casadns_token)
 
         if not updateDnsResult:
             continue
 
         async def update_dns_interval(now):
-            await _update_dns(session, username, password)
+            await _update_dns(session, casadns_domain, casadns_token)
 
         async_track_time_interval(hass, update_dns_interval, interval)
         
     return True        
 
-async def _update_dns(session, username, password):
+async def _update_dns(session, casadns_domain, casadns_token):
     try:
-        url = f"https://casadns.eu/dns/?username={username}&password={password}"
+        url = f"https://casadns.eu/update?domain={casadns_domain}&token={casadns_token}"
         async with async_timeout.timeout(TIMEOUT):
             resp = await session.get(url)
             body = await resp.text()
